@@ -7,51 +7,51 @@ import java.util.*;
  * @since 09/12/2017
  */
 public class CutOffTreesForGolfEvent {
-    class Point implements Comparable<Point> {
-        Point(int row, int col, int height) {
-            this.row = row;
-            this.col = col;
-            this.height = height;
-        }
-
-        int row;
-        int col;
-        int height;
-
-        @Override
-        public String toString() {
-            return String.format("[" + row + ":" + col + "]=>" + height);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Point point = (Point) o;
-
-            if (row != point.row) return false;
-            return col == point.col;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = row;
-            result = 31 * result + col;
-            return result;
-        }
-
-        @Override
-        public int compareTo(Point o) {
-            return this.height - o.height;
-        }
-    }
+//    class Point implements Comparable<Point> {
+//        Point(int row, int col, int height) {
+//            this.row = row;
+//            this.col = col;
+//            this.height = height;
+//        }
+//
+//        int row;
+//        int col;
+//        int height;
+//
+//        @Override
+//        public String toString() {
+//            return String.format("[" + row + ":" + col + "]=>" + height);
+//        }
+//
+//        @Override
+//        public boolean equals(Object o) {
+//            if (this == o) return true;
+//            if (o == null || getClass() != o.getClass()) return false;
+//
+//            Point point = (Point) o;
+//
+//            if (row != point.row) return false;
+//            return col == point.col;
+//        }
+//
+//        @Override
+//        public int hashCode() {
+//            int result = row;
+//            result = 31 * result + col;
+//            return result;
+//        }
+//
+//        @Override
+//        public int compareTo(Point o) {
+//            return this.height - o.height;
+//        }
+//    }
 
     protected int numRows;
     protected int numCols;
     //    protected List<Integer> numSteps = new ArrayList<Integer>();
     protected int totalNumSteps;
-    protected List<Point> trees = new ArrayList<Point>();
+    protected List<int[]> trees = new ArrayList<int[]>();
 
     protected List<List<Integer>> forest = new ArrayList<List<Integer>>();
 
@@ -59,19 +59,24 @@ public class CutOffTreesForGolfEvent {
     public int cutOffTree(List<List<Integer>> forest) {
         this.forest = forest;
 
-        List<Point> preTree = new ArrayList<Point>();
+        List<int[]> preTree = new ArrayList<int[]>();
         numRows = forest.size();
         numCols = forest.get(0).size();
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
                 int height = forest.get(row).get(col);
                 if (height != 0) {
-                    preTree.add(new Point(row, col, height));
+                    preTree.add(new int[]{row, col, height});
                 }
             }
         }
-        Collections.sort(preTree);
-        trees.add(new Point(0, 0, forest.get(0).get(0)));
+        Collections.sort(preTree, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o1[2] - o2[2];
+            }
+        });
+        trees.add(new int[]{0, 0, forest.get(0).get(0)});
         trees.addAll(preTree);
         boolean found = findNextTree(0);
 //        int totalSteps = 0;
@@ -83,85 +88,79 @@ public class CutOffTreesForGolfEvent {
     }
 
     protected boolean findNextTree(int startIdx) {
-        Point start = trees.get(startIdx);
-        Point target;
+        int[] start = trees.get(startIdx);
+        int[] target;
         if (startIdx + 1 < trees.size()) {
             target = trees.get(startIdx + 1);
         } else {
             return true;
         }
 
-        LinkedList<Point> toVisit = new LinkedList<Point>();
+        LinkedList<int[]> toVisit = new LinkedList<int[]>();
         toVisit.add(start);
-        Map<Point, Integer> distance = new HashMap<Point, Integer>();
-        distance.put(start, 0);
 
-        Map<Point, Boolean> visitMark = new HashMap<Point, Boolean>();
-
+        Boolean[][] visitMark = new Boolean[numRows][numCols];
+        int step = 0;
         boolean found = false;
         while (!toVisit.isEmpty()) {
-            Point curPoint = toVisit.pop();
-            Boolean visited = visitMark.get(curPoint);
-            if (visited == null || !visited) {
-                visitMark.put(curPoint, true);
-                if (curPoint.equals(target)) {
-                    found = true;
-                    break;
+            int lengh = toVisit.size();
+            for (int idx = 0; idx < lengh; idx++) {
+                int[] curPoint = toVisit.pop();
+                Boolean visited = visitMark[curPoint[0]][curPoint[1]];
+                if (visited == null || !visited) {
+                    visitMark[curPoint[0]][curPoint[1]] = true;
+                    if (curPoint[0] == target[0] && curPoint[1] == target[1]) {
+                        found = true;
+                        break;
+                    }
+                    findNextStep(curPoint, toVisit);
                 }
-                findNextStep(curPoint, toVisit, distance);
             }
+            if (found) {
+                break;
+            } else {
+                step++;
+            }
+
         }
         if (!found) {
             return false;
         } else {
-            totalNumSteps = totalNumSteps + distance.get(target);
+            totalNumSteps = totalNumSteps + step;
 //            numSteps.add(distance.get(target));
             return findNextTree(startIdx + 1);
         }
     }
 
-    protected void findNextStep(Point point, LinkedList<Point> toVisit, Map<Point, Integer> distance) {
-        int row = point.row;
-        int col = point.col;
-        int currentDistance = distance.get(point);
+    protected void findNextStep(int[] point, LinkedList<int[]> toVisit) {
+        int row = point[0];
+        int col = point[1];
 
         if (row + 1 < numRows) {
-            Point next = new Point(row + 1, col, this.forest.get(row + 1).get(col));
-            if (next.height != 0) {
+            int[] next = new int[]{row + 1, col, this.forest.get(row + 1).get(col)};
+            if (next[2] != 0) {
                 toVisit.add(next);
-                if (!distance.containsKey(next)) {
-                    distance.put(next, currentDistance + 1);
-                }
             }
         }
 
         if (row - 1 >= 0) {
-            Point next = new Point(row - 1, col, this.forest.get(row - 1).get(col));
-            if (next.height != 0) {
+            int[] next = new int[]{row - 1, col, this.forest.get(row - 1).get(col)};
+            if (next[2] != 0) {
                 toVisit.add(next);
-                if (!distance.containsKey(next)) {
-                    distance.put(next, currentDistance + 1);
-                }
             }
         }
 
         if (col + 1 < numCols) {
-            Point next = new Point(row, col + 1, this.forest.get(row).get(col + 1));
-            if (next.height != 0) {
+            int[] next = new int[]{row, col + 1, this.forest.get(row).get(col + 1)};
+            if (next[2] != 0) {
                 toVisit.add(next);
-                if (!distance.containsKey(next)) {
-                    distance.put(next, currentDistance + 1);
-                }
             }
         }
 
         if (col - 1 >= 0) {
-            Point next = new Point(row, col - 1, this.forest.get(row).get(col - 1));
-            if (next.height != 0) {
+            int[] next = new int[]{row, col - 1, this.forest.get(row).get(col - 1)};
+            if (next[2] != 0) {
                 toVisit.add(next);
-                if (!distance.containsKey(next)) {
-                    distance.put(next, currentDistance + 1);
-                }
             }
         }
     }

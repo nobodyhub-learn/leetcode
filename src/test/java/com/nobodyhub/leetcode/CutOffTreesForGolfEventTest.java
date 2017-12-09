@@ -17,8 +17,8 @@ public class CutOffTreesForGolfEventTest {
     public void test1() {
         List<List<Integer>> forest = getForest(new Integer[][]{
                 {1, 2, 3},
-                {0, 0, 4},
-                {7, 6, 5}
+                {0, 0, 4}, {7, 6, 5}
+
         });
 
 
