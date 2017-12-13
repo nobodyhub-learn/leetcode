@@ -25,7 +25,7 @@ public class LongestUncommonSubsequenceITest {
     @Test
     public void test3() {
         LongestUncommonSubsequenceI solution = new LongestUncommonSubsequenceI();
-        assertEquals(-1,
+        assertEquals(30,
                 solution.findLUSlength(
                         "horbxeemlgqpqbujbdagizcfairalg",
                         "iwvtgyojrfhyzgyzeikqagpfjoaeen"));
