@@ -1,5 +1,7 @@
 package com.nobodyhub.leetcode;
 
+import java.util.TreeMap;
+
 /**
  * @author Ryan
  * @since 30/12/2017
@@ -11,21 +13,13 @@ public class FindRightInterval {
         }
         int[] indices = new int[intervals.length];
 
+        TreeMap<Integer, Integer> indexMap = new TreeMap<Integer, Integer>();
         for (int idx = 0; idx < intervals.length; idx++) {
-            Interval interval = intervals[idx];
-            int smallIdx = -1;
-            for (int cmpIdx = 0; cmpIdx < intervals.length; cmpIdx++) {
-                Interval cmpInterval = intervals[cmpIdx];
-                if (interval == cmpInterval) {
-                    continue;
-                }
-                if (cmpInterval.start >= interval.end) {
-                    if (smallIdx == -1 || intervals[smallIdx].start > cmpInterval.start) {
-                        smallIdx = cmpIdx;
-                    }
-                }
-                indices[idx] = smallIdx;
-            }
+            indexMap.put(intervals[idx].start, idx);
+        }
+        for (int idx = 0; idx < intervals.length; idx++) {
+            Integer key = indexMap.ceilingKey(intervals[idx].end);
+            indices[idx] = key == null ? -1 : indexMap.get(key);
         }
         return indices;
     }
