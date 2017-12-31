@@ -2,9 +2,6 @@ package com.nobodyhub.leetcode;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Ryan
@@ -12,11 +9,10 @@ import java.util.regex.Pattern;
  */
 public class EncodeAndDecodeTinyURL {
     protected final Map<String, String> urlMap = new HashMap<String, String>();
-    protected static final String urlPattern = "(^[^\\/]+)://([^\\/:]+)(?::(\\d+)?)?(.*)";
 
     // Encodes a URL to a shortened URL.
     public String encode(String longUrl) {
-        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String uuid = getPath(longUrl);
         urlMap.put(uuid, longUrl);
         return "http://" + getHost(longUrl) + "/" + uuid;
     }
@@ -28,20 +24,16 @@ public class EncodeAndDecodeTinyURL {
     }
 
     protected String getHost(String url) {
-        Matcher m = Pattern.compile(urlPattern).matcher(url);
-        if (!m.find()) {
-            throw new RuntimeException("Malformatted URL!");
-        }
-        return m.group(2);
+        int pos1 = url.indexOf("/");
+        int pos2 = url.substring(pos1 + 1).indexOf("/") + pos1 + 1;
+        int pos3 = url.substring(pos2 + 1).indexOf("/") + pos2 + 1;
+        return url.substring(pos2 + 1, pos3);
     }
 
     protected String getPath(String url) {
-        Matcher m = Pattern.compile(urlPattern).matcher(url);
-        if (!m.find()) {
-            throw new RuntimeException("Malformatted URL!");
-        }
-        return m.group(4);
+        int pos1 = url.indexOf("/");
+        int pos2 = url.substring(pos1 + 1).indexOf("/") + pos1 + 1;
+        int pos3 = url.substring(pos2 + 1).indexOf("/") + pos2 + 1;
+        return url.substring(pos3);
     }
-
-
 }
